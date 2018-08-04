@@ -1,2 +1,2 @@
 # truffle-splitter
-Truffle assay
+Truffle excercise projects
