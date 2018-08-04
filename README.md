@@ -12,16 +12,15 @@ Truffle excercise projects
 ### Hypothesis:
 
 - the beneficiaries are set at contract creation time 
+- limited to only 2 beneficiaries added at creation time (addresses must be known, as in a real contract...)
 - the constract belongs to Alice (the owner) so only she can send eth
 - as Bob and Carol can see their balance, they could withdraw ether whenever they want, so ethers are NOT send when Alice send them.
 - the splitting remainder when Ether (or better wei...) are odd remains to Alice (into the contract)
 
 ### Pending
 
-- limit the beneficiary just to 2? And when?
 - coulde be better not to limit beneficiaries to only 2 and so use mapping... What at split time? It is not required...
-- what about setting beneficiaries at creation time? drawback is that their address must be known whan the contract is created
-- what about explicitly setting beneficiaries with a proper function? it is more expensive, but maybe safer (only 2 beneficiaries) and making simpler the split call....
+- what about explicitly setting beneficiaries with a proper function insted in constructor?
 - add some method to close this contract....
 
 ### Missings (just for now?)
