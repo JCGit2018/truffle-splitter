@@ -22,12 +22,11 @@ Truffle excercise projects
 - coulde be better not to limit beneficiaries to only 2 and so use mapping... What at split time? It is not required...
 - what about explicitly setting beneficiaries with a proper function insted in constructor?
 - add some method to close this contract....
+- consider log for contract creation
 
 ### Missings (just for now?)
 
 - web page
-- no logs
-- amount checks (what if Alice sends 0 ether?)
 - beneficiaries check
 - no tests
 

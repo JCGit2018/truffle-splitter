@@ -58,21 +58,18 @@ contract Splitter {
 	  	}
         
         require(withdrawn > 0);
-        msg.sender.transfer(withdrawn);
-
+        
  		emit LogWithdraw(msg.sender, withdrawn);
+        msg.sender.transfer(withdrawn);
 	}
 
-	function getAmount() public view returns(uint256) {
-       uint256 out = 0;
+	function getAmount() public view returns(uint256 out) {
 	   if (firstBeneficiary.addr == msg.sender) {
 	       out = firstBeneficiary.amount;
 	   } else if (secondBeneficiary.addr == msg.sender) {
 	       out = secondBeneficiary.amount;
 	   } else if (owner == msg.sender) {
 	       out = amount;
-	   } else {
-	        revert("No Eth for you!");
 	   }
     
         return out;
