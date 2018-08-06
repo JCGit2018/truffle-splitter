@@ -10,7 +10,7 @@ contract Splitter {
         uint256 amount;
     }
 	address public owner;
-	uint256 private amount = 10;
+	uint256 private amount;
 
     Beneficiary firstBeneficiary;
     Beneficiary secondBeneficiary;
