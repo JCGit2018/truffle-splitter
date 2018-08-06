@@ -2,12 +2,15 @@ pragma solidity ^0.4.24;
 
 
 contract Splitter {
+	event LogSplitted(address indexed first, address indexed second, uint256 amount);
+	event LogWithdraw(address indexed beneficiary, uint256 amount);
+
     struct Beneficiary {
         address addr;
         uint256 amount;
     }
 	address public owner;
-	uint256 public amount;
+	uint256 private amount = 10;
 
     Beneficiary firstBeneficiary;
     Beneficiary secondBeneficiary;
@@ -35,9 +38,11 @@ contract Splitter {
         firstBeneficiary.amount  += value;
         secondBeneficiary.amount += value;
         amount += change;
+
+        emit LogSplitted(firstBeneficiary.addr, secondBeneficiary.addr, value);
 	}
 	
-	function whitdraw() public payable {
+	function withdraw() public payable {
        	uint256 withdrawn = 0;
 	   	if (firstBeneficiary.addr == msg.sender) {
 	   		withdrawn = firstBeneficiary.amount;
@@ -52,8 +57,10 @@ contract Splitter {
 	        revert("No Eth for you!");
 	  	}
         
-        require(withdrawn != 0);
-        msg.sender.transfer(amount);
+        require(withdrawn > 0);
+        msg.sender.transfer(withdrawn);
+
+ 		emit LogWithdraw(msg.sender, withdrawn);
 	}
 
 	function getAmount() public view returns(uint256) {
