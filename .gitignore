@@ -4,3 +4,5 @@ splitter-cmd.txt
 # build
 build
 
+# modules
+node_modules
