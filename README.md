@@ -23,6 +23,9 @@ Truffle excercise projects
 - add some method to close this contract....
 - consider log for contract creation
 - increase tests and add some wrong scenario 
+- how check event in test?
+- how check expected exception in test?
+- what about network where the contract is  deployed?
 
 ### Missings (just for now?)
 

@@ -1,5 +1,7 @@
 Promise = require("bluebird");
-const getBalancePromise = Promise.promisify(web3.eth.getBalance);
+SafeMath = require("safemath");
+
+Promise.promisifyAll(web3.eth, { suffix: "Promise" });
 
 // Import the smart contracts
 const Splitter = artifacts.require("./Splitter.sol");
@@ -9,112 +11,89 @@ contract('Splitter', function(accounts) {
 
 	console.log(accounts);
 
-	before("check accounts number", function() {
-        assert.isAtLeast(accounts.length, 3, "not enough accounts");
-    });
-
-	var instance;
-    before("should get a Splitter instance", function() {
-        return Splitter.deployed()
-            .then(function(_instance) {
-                instance = _instance;
-            });
-    });
-
     var first;
     var second;
     var owner;
-    before("should get owner and benificiaries", function() {
-        return instance.owner()
-            .then(_owner => owner = _owner)
-            .then(function() {
-			    for (var i = 0; i < accounts.length; i++) {
-			    	if (owner != accounts[i] && typeof(first) == "undefined")
-			    		first = accounts[i];
-			    	else if (owner != accounts[i] && typeof(second) == "undefined")
-			    		second = accounts[i];
-			    }
-        	})
-        	.then(function() {
-				console.log("Owner  " + owner);
-				console.log("First  " + first);
-				console.log("Second " + second);
-        	});
+	before("check accounts number", function() {
+        assert.isAtLeast(accounts.length, 3, "not enough accounts");
+        [owner, first, second] = accounts;
+        console.log("Owner  " + owner);
+        console.log("First beneficiary " + first);
+        console.log("Second beneficiary " + second);
     });
+
 
     var ownerBalance;
     before("should get owner balance", function() {
-        return getBalancePromise(owner)
+        return web3.eth.getBalancePromise(owner)
         	.then(_balance => {
         		ownerBalance = _balance
 				console.log("Owner balance " + ownerBalance);
         	});
 	});
 
-    var ownerAmount;
-    it("should get amount for owner", function() {
-        return instance.amount(owner)
-            .then(function(value) {
-            	ownerAmount = value;
-				console.log("Amount for " + owner + " is " + value);
+    var instance;
+    beforeEach("should deploy Splitter and get the instance", function() {
+        return Splitter.new({ from: owner, gas: MAX_GAS })
+            .then(function(_instance) {
+                instance = _instance;
             });
     });
 
-    var fistAmount;
-    it("should get amount for first beneficiary", function() {
-        return instance.amount(first)
-            .then(function(value) {
-            	fistAmount = value;
-				console.log("Amount for " + first + " is " + value);
-            });
+    describe("Split", function() {
+
+        var ownerCredit;
+        var fistCredit;
+        var secondCredit;    
+
+        it("should fail if the first beneficiary is missing", function() {
+            var splitValue = ownerBalance.dividedBy(40);
+            return instance.split(0, second, {sender: owner, value: splitValue, gas: MAX_GAS})
+                .catch(function(error) {
+                    assert.include(error.message, "VM Exception while processing transaction: revert");
+                });
+        });
+
+        it("should fail if the second beneficiary is missing", function() {
+            var splitValue = ownerBalance.dividedBy(40);
+            return instance.split(first, 0, {sender: owner, value: splitValue, gas: MAX_GAS})
+                .catch(function(error) {
+                    assert.include(error.message, "VM Exception while processing transaction: revert");
+                });
+        });
+
+        it("should fail if the vaue is zero", function() {
+            return instance.split(first, second, {sender: owner, value: 0, gas: MAX_GAS})
+                .catch(function(error) {
+                    assert.include(error.message, "VM Exception while processing transaction: revert");
+                });
+        });
+
+        it("should fail if owner doesn't have enough eth", function() {
+            var splitValue = ownerBalance.plus(30);
+            return instance.split(first, second, {sender: owner, value: splitValue, gas: MAX_GAS})
+                .catch(function(error) {
+                    assert.include(error.message, "sender doesn't have enough funds");
+                });
+        });
+
+        it("should split eth ", function() {
+            var splitValue = ownerBalance.dividedBy(40);
+            var change = splitValue.modulo(2);
+            var credit = splitValue.minus(change).dividedBy(2);
+
+            return instance.split(first, second, {sender: owner, value: splitValue, gas: MAX_GAS})
+                .then(function() {
+                    return instance.credit(owner)
+                }).then(function(value) {
+                    assert.equal(value.toString(10), change.toString(10), "owner credit is wrong");
+                    return instance.credit(first);
+                }).then(function(value) {
+                    assert.equal(value.toString(10), credit.toString(10), "first beneficiary credit is wrong");
+                    return instance.credit(second);
+                }).then(function(value) {
+                    assert.equal(value.toString(10), credit.toString(10), "second beneficiary credit is wrong");
+                });
+        });
     });
-
-    var secondAmount;    
-    it("should get amount for second beneficiary", function() {
-        return instance.amount(second)
-            .then(function(value) {
-            	secondAmount = value;
-				console.log("Amount for " + second + " is " + value);
-            });
-    });
-
-
-    it("should split eth ", function() {
-	    var splitValue = ownerBalance / 3;
-        return instance.split(first, second, {sender: owner, value: splitValue, gas: MAX_GAS});
-    });
-
-    it("should check owner balance", function() {
-        return getBalancePromise(owner)
-        	.then(_balance => {
-        		var payed = ownerBalance - _balance;
-				console.log("Owner new balance " + _balance);
-				console.log("Owner payed " + payed);
-        	});
-	});
-
-    it("should check amount for owner", function() {
-        return instance.amount(owner)
-            .then(function(value) {
-            	var delta =  value - ownerAmount;
-				console.log("Amount for " + owner + " increased by " + delta);
-            });
-    });
-
-    it("should check amount for first beneficiary", function() {
-        return instance.amount(first)
-            .then(function(value) {
-            	var delta =  value - fistAmount;
-				console.log("Amount for " + first + " increased by " + delta);
-            });
-    });
-
-    it("should check amount for second beneficiary", function() {
-        return instance.amount(second)
-            .then(function(value) {
-            	var delta =  value - secondAmount;
-				console.log("Amount for " + second + " increased by " + delta);
-            });
-    });
-
 });
