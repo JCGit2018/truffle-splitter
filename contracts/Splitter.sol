@@ -19,8 +19,7 @@ contract Owned {
 }
 
 contract Splitter is Owned {
-	event LogSplitted(address indexed first, address indexed second, uint256 amount);
-	event LogRemainder(address indexed payer, uint256 amount);
+	event LogSplitted(address indexed payer, address indexed first, address indexed second, uint256 remainder, uint256 amount);
 	event LogWithdrawn(address indexed beneficiary, uint256 amount);
 
     mapping(address => uint256) public credit;
@@ -39,12 +38,10 @@ contract Splitter is Owned {
   
         credit[first]  = SafeMath.add(credit[first], value);
         credit[second] = SafeMath.add(credit[second], value);
-        if (change > 0) {
+        if (change > 0)
 	        credit[msg.sender] = SafeMath.add(credit[msg.sender], change);
-		    emit LogRemainder(msg.sender, change);
-        }
 		
-		emit LogSplitted(first, second, value);
+		emit LogSplitted(msg.sender, first, second, value, change);
 	}
 	
 	function withdraw(uint256 value) public payable {
