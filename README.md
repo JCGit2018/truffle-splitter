@@ -25,7 +25,9 @@ Truffle excercise projects
 - increase tests and add some wrong scenario 
 - how check event in test?
 - how check expected exception in test?
-- what about network where the contract is  deployed?
+- what about network where the contract is deployed?
+- how unlock account?
+- wrong parameters could be tested using call instead of transaction, to speed up tests?
 
 ### Missings (just for now?)
 
