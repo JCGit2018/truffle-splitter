@@ -90,34 +90,34 @@ contract('Splitter', function(accounts) {
     describe("Split as CALL", function() {
         var instance;
         before("should deploy Splitter and get the instance", function() {
-            return Splitter.new({ from: owner, gas: MAX_GAS })
+            return Splitter.new({from: owner, gas: MAX_GAS })
                 .then(function(_instance) {
                     instance = _instance;
                 });
         });
 
         it("should fail if the first beneficiary is missing", function() {
-            return instance.split.call(0, second, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+            return instance.split.call(0, second, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 .catch(error  =>  {
                     assert.include(error.message, "VM Exception while processing transaction: revert");
                 });
         });
 
         it("should fail if the second beneficiary is missing", function() {
-            return instance.split.call(first, 0, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+            return instance.split.call(first, 0, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 .catch(error  =>  {
                     assert.include(error.message, "VM Exception while processing transaction: revert");
                 });
         });
 
         it("should fail if the value is zero", function() {
-            return instance.split.call(first, second, {sender: owner, value: 0, gas: MAX_GAS})
+            return instance.split.call(first, second, {from: owner, value: 0, gas: MAX_GAS})
                 .catch(error  =>  {
                     assert.include(error.message, "VM Exception while processing transaction: revert");
                 });
         });
         it("should fail if the sender is not the owner ", function() {
-            return instance.split.call(owner, second, {sender: first, value: AMOUNT, gas: MAX_GAS})
+            return instance.split.call(owner, second, {from: first, value: AMOUNT, gas: MAX_GAS})
                 .catch(error  =>  {
                     assert.include(error.message, "VM Exception while processing transaction: revert");
                 });
@@ -136,25 +136,25 @@ contract('Splitter', function(accounts) {
 
         it("should fail if the first beneficiary is missing", function() {
             return web3.eth.expectedExceptionPromise(function() {
-                    return instance.split(0, second, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+                    return instance.split(0, second, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 }, MAX_GAS)
         });
 
         it("should fail if the second beneficiary is missing", function() {
             return web3.eth.expectedExceptionPromise(function() {
-                    return instance.split(first, 0, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+                    return instance.split(first, 0, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 }, MAX_GAS)
         });
 
         it("should fail if the value is zero", function() {
             return web3.eth.expectedExceptionPromise(function() {
-                    return instance.split(first, second, {sender: owner, value: 0, gas: MAX_GAS})
+                    return instance.split(first, second, {from: owner, value: 0, gas: MAX_GAS})
                 }, MAX_GAS)
         });
 
         it("should fail if the sender is not the owner", function() {
             return web3.eth.expectedExceptionPromise(function() {
-                    return instance.split(owner, second, {sender: first, value: AMOUNT, gas: MAX_GAS})
+                    return instance.split(owner, second, {from: first, value: AMOUNT, gas: MAX_GAS})
                 }, MAX_GAS)
         });
 
@@ -162,7 +162,7 @@ contract('Splitter', function(accounts) {
             var change = AMOUNT % 2;
             var credit = (AMOUNT - change) / 2;
 
-            return instance.split(first, second, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+            return instance.split(first, second, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 .then(txObject => {
                     assert.equal(txObject.logs.length, 1, "should have received 1 event");
                     assert.equal(txObject.logs[0].event, "LogSplitted", "should be LogSplitted event");
@@ -196,17 +196,17 @@ contract('Splitter', function(accounts) {
         let credit = (AMOUNT - change) / 2;
 
         it("should withdraw whole eth ", function() {
-            //return instance.split(first, second, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+            //return instance.split(first, second, {from: owner, value: AMOUNT, gas: MAX_GAS})
             //    .then(() => function() {
-            //        return instance.withdraw(credit, {sender: first, gas: MAX_GAS});
+            //        return instance.withdraw(credit, {from: first, gas: MAX_GAS});
             //    })
-            return instance.split(first, second, {sender: owner, value: AMOUNT, gas: MAX_GAS})
+            return instance.split(first, second, {from: owner, value: AMOUNT, gas: MAX_GAS})
                 .then(() => {
                     return instance.credit(first)
                 })
                 .then(value => {
                     assert.equal(value.toString(10), "" + credit, "first beneficiary credit is wrong");
-                    return instance.withdraw(value, {sender: first, gas: MAX_GAS})
+                    return instance.withdraw(value, {from: first, gas: MAX_GAS})
                 })
                 .then(txObject => {
                     assert.equal(txObject.logs.length, 1, "should have received 1 event");
@@ -217,7 +217,7 @@ contract('Splitter', function(accounts) {
                 }).then(function(value) {
                     assert.equal(value.toString(10), "0", "beneficiary credit is wrong");
 
-                    return instance.withdraw(credit, {sender: second, gas: MAX_GAS});
+                    return instance.withdraw(credit, {from: second, gas: MAX_GAS});
                 }).then(txObject => {
                     assert.equal(txObject.logs.length, 1, "should have received 1 event");
                     assert.equal(txObject.logs[0].event, "LogWithdrawn", "should be LogWithdrawn event");
@@ -227,7 +227,7 @@ contract('Splitter', function(accounts) {
                 }).then(function(value) {
                     assert.equal(value.toString(10), "0", "beneficiary credit is wrong");
 
-                    return instance.withdraw(change, {sender: owner, gas: MAX_GAS});
+                    return instance.withdraw(change, {from: owner, gas: MAX_GAS});
                 }).then(txObject => {
                     assert.equal(txObject.logs.length, 1, "should have received 1 event");
                     assert.equal(txObject.logs[0].event, "LogWithdrawn", "should be LogWithdrawn event");
